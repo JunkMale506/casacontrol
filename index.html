@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CasaControl">
+<meta name="theme-color" content="#0E6B5E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+<title>CasaControl Field Quote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow field-tool column, sticky header + sticky totals bar, bottom sheets for pickers */
+:root{
+  --bg:#EEF1EC; --surface:#FFFFFF; --sunk:#E3E8E2; --ink:#16232A; --muted:#5A6A6C; --line:#CFD7D0;
+  --accent:#0E6B5E; --accent-ink:#FFFFFF; --accent-soft:#D6EAE5;
+  --ok:#1D7A3A; --ok-soft:#DCF0E1; --warn:#9A6400; --warn-soft:#FBEFD3; --bad:#B03A2E; --bad-soft:#F7DEDA; --na:#5A6A6C; --na-soft:#E4E8E5;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1719; --surface:#172225; --sunk:#0B1214; --ink:#E4ECEA; --muted:#93A4A3; --line:#2A3A3D;
+  --accent:#3FB8A3; --accent-ink:#06201B; --accent-soft:#163A35;
+  --ok:#5CCB7D; --ok-soft:#173523; --warn:#E7B04A; --warn-soft:#3A2C10; --bad:#F08476; --bad-soft:#3D1D19; --na:#93A4A3; --na-soft:#223033;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1719; --surface:#172225; --sunk:#0B1214; --ink:#E4ECEA; --muted:#93A4A3; --line:#2A3A3D;
+  --accent:#3FB8A3; --accent-ink:#06201B; --accent-soft:#163A35;
+  --ok:#5CCB7D; --ok-soft:#173523; --warn:#E7B04A; --warn-soft:#3A2C10; --bad:#F08476; --bad-soft:#3D1D19; --na:#93A4A3; --na-soft:#223033;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 120px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .in{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.01em;margin-right:auto}
+.brand small{display:block;font-family:var(--f-body);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tabs{display:flex;gap:4px;background:var(--sunk);padding:3px;border-radius:999px}
+.tabs a{padding:6px 14px;border-radius:999px;color:var(--muted);text-decoration:none;font-weight:600;font-size:14px}
+.tabs a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0}
+h1{font-size:26px} h2{font-size:20px} h3{font-size:17px}
+.eyebrow{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+button,.btn{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;cursor:pointer;min-height:40px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.ghost{background:transparent;border-color:transparent;color:var(--accent);padding-inline:6px}
+.danger{color:var(--bad);border-color:var(--bad-soft)}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-height:40px;width:100%}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:560px){.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+@media (max-width:559px){.grid3{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.s-in{background:var(--ok-soft);color:var(--ok)} .s-low,.s-pre{background:var(--warn-soft);color:var(--warn)} .s-out{background:var(--bad-soft);color:var(--bad)} .s-unverified{background:var(--warn-soft);color:var(--warn)} .s-na{background:var(--na-soft);color:var(--na)}
+.qcard{display:flex;justify-content:space-between;gap:12px;align-items:center;text-decoration:none;color:inherit}
+.qcard:hover{border-color:var(--accent)}
+.room{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.room-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;background:var(--sunk)}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:10px 14px;border-top:1px solid var(--line)}
+.line .nm{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.line .meta{font-size:12px;color:var(--muted)}
+.qty{display:flex;align-items:center;gap:4px}
+.qty button{min-width:36px;min-height:36px;padding:0;justify-content:center}
+.qty .n{min-width:28px;text-align:center}
+.warnline{color:var(--bad);font-size:12px;font-weight:600}
+.totals{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.totals .in{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px calc(10px + env(safe-area-inset-bottom,0px))}
+.tbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.big{font-family:var(--f-mono);font-size:22px;font-weight:500}
+.brk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:14px;margin-top:10px}
+.brk .tot{font-weight:600;border-top:1px solid var(--line);padding-top:4px}
+.brk .sec{grid-column:1/-1;margin-top:8px}
+.sheet-bg{position:fixed;inset:0;background:rgba(5,15,15,.45);z-index:40}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:16px 16px 0 0;max-height:86%;display:flex;flex-direction:column}
+.sheet .sh{max-width:760px;width:100%;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 8px;display:flex;flex-direction:column;gap:10px}
+.sheet .sb{overflow-y:auto;max-width:760px;width:100%;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(20px + env(safe-area-inset-bottom,0px))}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chips button{min-height:32px;padding:4px 12px;border-radius:999px;font-size:13px;white-space:nowrap}
+.chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pick{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center;width:100%;text-align:left;background:none;border-left:0;border-right:0;border-top:0;border-radius:0;min-height:0}
+.pick .nm{font-weight:600}
+.cat-h{margin-top:18px;margin-bottom:6px}
+.citem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 14px;border-top:1px solid var(--line)}
+.citem:first-child{border-top:0}
+.notice{padding:12px 14px;border-radius:var(--r);background:var(--warn-soft);color:var(--ink);font-size:14px}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:14px;z-index:50}
+details summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details summary::-webkit-details-marker{display:none}
+details[open] summary .chev{transform:rotate(180deg)}
+.chev{transition:transform .15s}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+a.ext{color:var(--accent);font-weight:600;font-size:13px}
+</style>
+
+</head><body>
+<header class="top"><div class="in">
+  <div class="brand">CasaControl<small>Field quote</small></div>
+  <nav class="tabs" aria-label="Sections">
+    <a href="#quotes" id="tab-quotes">Quotes</a>
+    <a href="#catalog" id="tab-catalog">Catalog</a>
+  </nav>
+</div></header>
+
+<main class="wrap" id="app">
+  <div class="empty" id="boot">Loading your quotes and parts catalog…</div>
+</main>
+<div id="totals-host"></div>
+<div id="sheet-host"></div>
+<div id="toast-host"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = (n,d=2)=> (n<0?"-":"")+"$"+Math.abs(+n||0).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+
+const SEED = {"catalog": {"k-host": {"cat": "Core kit", "sort": 1, "kit": true, "name": "Beelink EQ14 mini PC", "spec": "Intel N150, 16GB, 500GB NVMe, dual 2.5GbE. Runs Home Assistant + Frigate.", "vendor": "Beelink official", "url": "https://www.bee-link.com/products/beelink-eq14-n150", "price": 389, "stock": "pre", "checked": "2026-11-07", "note": "Pre-order from Beelink's US warehouse. Price has ranged $369\u2013$445 since September."}, "k-zb": {"cat": "Core kit", "sort": 2, "kit": true, "name": "SONOFF Dongle Plus MG24", "spec": "Zigbee/Thread USB radio for Zigbee sensors", "vendor": "CloudFree", "url": "https://cloudfree.shop/products/sonoff-dongle-plus-mg24", "price": 35.49, "stock": "in", "checked": "2026-11-07", "note": "8 in stock. ZBT-2 sold out at every US seller checked."}, "k-voice": {"cat": "Core kit", "sort": 3, "kit": true, "name": "Home Assistant Voice PE", "spec": "Room voice satellite. Add one per extra room.", "vendor": "Apollo Automation", "url": "https://apolloautomation.com/products/home-assistant-voice", "price": 58.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "k-brick": {"cat": "Core kit", "sort": 4, "kit": true, "name": "USB-C 5V power brick + cable", "spec": "For Voice PE (none in box)", "vendor": "Any", "url": "", "price": 12, "stock": "na", "checked": "", "note": "Estimate. Pick any in-stock 5V 3A USB-C charger."}, "k-display": {"cat": "Core kit", "sort": 5, "kit": true, "name": "Apolosign 15.6\" wall display", "spec": "FA1569T, RK3576, no battery, Google Play, wall bracket in box", "vendor": "Staples", "url": "https://www.staples.com/apolosign-15-6-dual-mode-digital-calendar-wall-planner-smart-family-organizer-spruce-gray-fa1569t-gray/product_24684554", "price": 499.99, "stock": "in", "checked": "2026-11-07", "note": "Orderable for delivery."}, "k-fully": {"cat": "Core kit", "sort": 6, "kit": true, "name": "Fully Kiosk Browser PLUS", "spec": "Per-display license, one-time", "vendor": "fully-kiosk.com", "url": "https://www.fully-kiosk.com/docs/en/legal/fully-plus-license", "price": 10.99, "stock": "na", "checked": "2026-11-07", "note": "Digital license, bought inside the app."}, "k-ups": {"cat": "Core kit", "sort": 7, "kit": true, "name": "UPS, line-interactive with AVR", "spec": "1000\u20131500VA for HA box, modem, router, switch", "vendor": "Your pick", "url": "", "price": 200, "stock": "unverified", "checked": "", "note": "Placeholder until you choose a model."}, "k-cables": {"cat": "Core kit", "sort": 8, "kit": true, "name": "Cat6 patch cables + USB extension", "spec": "Install consumables", "vendor": "Any", "url": "", "price": 30, "stock": "na", "checked": "", "note": "Estimate."}, "sh-1": {"cat": "Lighting & relays", "sort": 1, "kit": false, "name": "Shelly 1 Gen4 (UL)", "spec": "Relay, dry contact. Gates, single light circuits. Needs neutral.", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 27.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-1pm": {"cat": "Lighting & relays", "sort": 2, "kit": false, "name": "Shelly 1PM Gen4 (UL)", "spec": "Relay with power metering, one circuit", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 32.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-2pm": {"cat": "Lighting & relays", "sort": 3, "kit": false, "name": "Shelly 2PM Gen4 (UL)", "spec": "Two circuits with metering, or one shade/awning motor", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 39.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-1mini": {"cat": "Lighting & relays", "sort": 4, "kit": false, "name": "Shelly 1 Mini Gen4", "spec": "Small relay for tight switch boxes", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 24.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-1pmmini": {"cat": "Lighting & relays", "sort": 5, "kit": false, "name": "Shelly 1PM Mini Gen4", "spec": "Small relay with power metering", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 27.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-dim": {"cat": "Lighting & relays", "sort": 6, "kit": false, "name": "Shelly Dimmer Gen4 US (UL)", "spec": "In-box dimmer for dimmable loads", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 49.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-i4": {"cat": "Lighting & relays", "sort": 7, "kit": false, "name": "Shelly Plus i4 (UL)", "spec": "4 switch inputs for scene buttons", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 19.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-pro4pm": {"cat": "Lighting & relays", "sort": 8, "kit": false, "name": "Shelly Pro 4PM", "spec": "DIN-rail, 4 metered circuits, for panel installs", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 142.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sh-plug": {"cat": "Lighting & relays", "sort": 9, "kit": false, "name": "Shelly Plug US Gen4", "spec": "Smart plug with metering", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 24.99, "stock": "out", "checked": "2026-11-07", "note": "White single out of stock; packs listed without a clear stock status."}, "sn-door": {"cat": "Sensors", "sort": 1, "kit": false, "name": "Shelly BLU Door/Window ZB", "spec": "Zigbee door/window contact", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 22.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sn-motion": {"cat": "Sensors", "sort": 2, "kit": false, "name": "Shelly BLU Motion ZB", "spec": "Zigbee motion sensor", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 26.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sn-ht": {"cat": "Sensors", "sort": 3, "kit": false, "name": "Shelly BLU H&T ZB", "spec": "Zigbee temperature/humidity", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 23.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sn-flood": {"cat": "Sensors", "sort": 4, "kit": false, "name": "Shelly Flood Gen4", "spec": "Wi-Fi leak sensor", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 39.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sn-presence": {"cat": "Sensors", "sort": 5, "kit": false, "name": "Shelly Presence Gen4", "spec": "Room presence (detects people sitting still)", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 84.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "sn-button": {"cat": "Sensors", "sort": 6, "kit": false, "name": "Shelly BLU RC Button 4 ZB", "spec": "4-button Zigbee scene remote", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 23.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "en-em": {"cat": "Energy", "sort": 1, "kit": false, "name": "Shelly EM Gen3 50A", "spec": "Whole-house or 2-circuit energy monitor", "vendor": "Shelly USA", "url": "https://us.shelly.com/collections/all-products/gen4", "price": 69.99, "stock": "in", "checked": "2026-11-07", "note": ""}, "cam-520a": {"cat": "Cameras", "sort": 1, "kit": false, "name": "Reolink RLC-520A", "spec": "5MP PoE dome, RTSP + substream, Frigate-ready", "vendor": "Newegg (sold by Reolink)", "url": "https://www.newegg.com/p/9SIAGU1BYV1333", "price": 46.74, "stock": "unverified", "checked": "2026-11-07", "note": "No retailer showed a clear stock status. Confirm before ordering."}, "cam-811a": {"cat": "Cameras", "sort": 2, "kit": false, "name": "Reolink RLC-811A", "spec": "4K PoE, 5x optical zoom, spotlight", "vendor": "ameriDroid", "url": "https://ameridroid.com/products/reolink-rlc-811a", "price": 139.95, "stock": "low", "checked": "2026-11-07", "note": ""}, "cam-nvme": {"cat": "Cameras", "sort": 3, "kit": false, "name": "2TB NVMe recording drive", "spec": "Beelink second M.2 slot, for Frigate recordings", "vendor": "TBD", "url": "", "price": 0, "stock": "unverified", "checked": "", "note": "Not priced yet."}, "net-ucg": {"cat": "Network", "sort": 1, "kit": false, "name": "UniFi Cloud Gateway Ultra", "spec": "Router + remote management for all client sites", "vendor": "Ubiquiti store", "url": "https://store.ui.com/us/en/category/all-unifi-cloud-gateways/products/ucg-ultra", "price": 142, "stock": "in", "checked": "2026-11-07", "note": "$129 list + Ubiquiti surcharge."}, "net-u7lite": {"cat": "Network", "sort": 2, "kit": false, "name": "UniFi U7 Lite access point", "spec": "Wi-Fi 7 ceiling AP, PoE", "vendor": "Ubiquiti store", "url": "https://store.ui.com/us/en/category/all-wifi/products/u7-lite", "price": 109, "stock": "in", "checked": "2026-11-07", "note": "$99 list + surcharge."}, "net-sw8": {"cat": "Network", "sort": 3, "kit": false, "name": "UniFi Switch Lite 8 PoE", "spec": "8-port switch, 4 PoE ports for APs/cameras", "vendor": "Ubiquiti store", "url": "https://store.ui.com/products/usw-lite-8-poe", "price": 120, "stock": "in", "checked": "2026-11-07", "note": "$109 list + surcharge."}}, "quotes": {}, "config": {"rates": {"haCloudYr": 65, "claudeMo": 5, "twilioPerMsg": 0.005, "metaTpl": 0.0113}}};
+const KEY = "casacontrol.fieldquote.v1";
+let store;
+try{ store = JSON.parse(localStorage.getItem(KEY)||"null"); }catch(_){ store=null; }
+if(!store||!store.catalog){ store = JSON.parse(JSON.stringify(SEED)); try{localStorage.setItem(KEY,JSON.stringify(store));}catch(_){} }
+const listeners = [];
+function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(_){ toast("Couldn’t save on this device. Storage may be full or blocked."); } listeners.forEach(f=>f()); }
+function snapColl(coll){ const docs=Object.entries(store[coll]||{}).map(([id,d])=>({id,exists:true,data:()=>d})); return {docs,size:docs.length,empty:!docs.length,metadata:{fromCache:false,hasPendingWrites:false}}; }
+const localDb = {
+  doc(path){ const [coll,id]=path.split("/"); return {
+    set(body){ store[coll]=store[coll]||{}; store[coll][id]=JSON.parse(JSON.stringify(body)); persist(); return Promise.resolve(); },
+    delete(){ if(store[coll]) delete store[coll][id]; persist(); return Promise.resolve(); },
+    onSnapshot(cb){ const f=()=>{ const d=(store[coll]||{})[id]; cb({id,exists:!!d,data:()=>d,metadata:{fromCache:false}}); }; listeners.push(f); setTimeout(f,0); return ()=>{}; }
+  };},
+  collection(coll){ return { onSnapshot(cb){ const f=()=>cb(snapColl(coll)); listeners.push(f); setTimeout(f,0); return ()=>{}; } }; }
+};
+const localDownloads = { save({filename,data}){ const blob=new Blob([data],{type:filename.endsWith(".json")?"application/json":"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); return Promise.resolve({status:"saved"}); } };
+const useCap = n => Promise.resolve(n==="db"?localDb:n==="downloads"?localDownloads:null);
+
+const n0 = v => { const x = parseFloat(v); return isFinite(x)?x:0; };
+const STOCK = {in:"In stock",low:"Low stock",pre:"Pre-order",out:"Out of stock",unverified:"Stock unverified",na:"No stock check"};
+const CATS = ["Core kit","Lighting & relays","Sensors","Energy","Cameras","Network","Other"];
+
+let db=null, catalog=[], quotes=[], rates={haCloudYr:65,claudeMo:5,twilioPerMsg:0.005,metaTpl:0.0113};
+let loaded={catalog:false,quotes:false}, offline=false, readOnly=false;
+let route={view:"quotes",id:null};
+let pickerState=null, sheetOpen=null;
+
+/* ---------- write queue: one write at a time per doc ---------- */
+const chains={}, timers={};
+function queueWrite(path, fn){
+  chains[path]=(chains[path]||Promise.resolve()).then(fn).catch(e=>{
+    if(e&&e.code==="invalid_argument"){readOnly=true;toast("You can view these quotes but can’t change them.");}
+    else if(e&&e.code==="quota_exceeded"){toast("Storage is full. Delete old quotes to save new ones.");}
+    else toast("Couldn’t save. Check your connection and try again.");
+  });
+  return chains[path];
+}
+function saveQuote(q, delay=0){
+  q.updated=Date.now();
+  const path="quotes/"+q.id;
+  clearTimeout(timers[path]);
+  const body=JSON.parse(JSON.stringify(q));
+  const run=()=>queueWrite(path,()=>db.doc(path).set(body));
+  if(delay) timers[path]=setTimeout(run,delay); else run();
+}
+
+/* ---------- math ---------- */
+function calc(q){
+  const hw=(q.lines||[]).reduce((s,l)=>s+n0(l.qty)*n0(l.price),0);
+  const imp=hw*n0(q.importPct)/100, landed=hw+imp, mk=landed*n0(q.markup)/100, labor=n0(q.laborHours)*n0(q.laborRate);
+  const price=landed+mk+labor;
+  const yrHa=n0(rates.haCloudYr), yrCl=n0(rates.claudeMo)*12, yrTw=n0(q.msgs)*n0(rates.twilioPerMsg)*12, yrMt=n0(q.tpls)*n0(rates.metaTpl)*12;
+  const yrCost=yrHa+yrCl+yrTw+yrMt, yrRev=n0(q.serviceFee)*12;
+  const noPrice=(q.lines||[]).filter(l=>!(n0(l.price)>0)).length;
+  return {hw,imp,landed,mk,labor,price,margin:price-landed,yrHa,yrCl,yrTw,yrMt,yrCost,yrRev,yrMargin:yrRev-yrCost,noPrice};
+}
+
+/* ---------- routing ---------- */
+function readRoute(){
+  const h=(location.hash||"").replace("#","");
+  if(h==="catalog") route={view:"catalog",id:null};
+  else if(h.startsWith("q-")) route={view:"quote",id:h.slice(2)};
+  else route={view:"quotes",id:null};
+}
+window.addEventListener("hashchange",()=>{readRoute();closeSheet();render();});
+
+/* ---------- render ---------- */
+function render(){
+  const fe=document.activeElement, fid=fe&&fe.id, ss=fe&&fe.selectionStart, se=fe&&fe.selectionEnd;
+  $("#tab-quotes").setAttribute("aria-current", route.view!=="catalog"?"page":"false");
+  $("#tab-catalog").setAttribute("aria-current", route.view==="catalog"?"page":"false");
+  const app=$("#app");
+  if(!db){ app.innerHTML=`<div class="notice">This browser is blocking local storage, so quotes can’t be saved here. Turn off private browsing and reload.</div>`; $("#totals-host").innerHTML=""; return; }
+  let html="";
+  if(offline && !(loaded.catalog&&loaded.quotes)) html+=`<div class="notice">Can’t reach your saved data yet. If you’re on weak signal, it will load when the connection improves.</div>`;
+  if(route.view==="catalog") html+=viewCatalog();
+  else if(route.view==="quote") html+=viewQuote();
+  else html+=viewQuotes();
+  app.innerHTML=html;
+  renderTotals();
+  if(fid){const el=document.getElementById(fid); if(el){el.focus(); try{ if(ss!=null) el.setSelectionRange(ss,se);}catch(_){}}}
+}
+
+function viewQuotes(){
+  const list=[...quotes].sort((a,b)=>(b.updated||0)-(a.updated||0));
+  let h=`<div class="stack">
+  <div class="row" style="justify-content:space-between"><h1>Quotes</h1>
+  ${readOnly?"":`<button class="primary" data-act="new-quote" id="btn-new">New quote</button>`}</div>`;
+  if(!loaded.quotes) h+=`<div class="empty">Loading quotes…</div>`;
+  else if(!list.length) h+=`<div class="panel empty"><h3>No quotes yet</h3><p>Tap <b>New quote</b> at a client’s house. It starts with the core kit already in it, and you add switches, sensors and cameras room by room.</p></div>`;
+  else list.forEach(q=>{const c=calc(q);
+    h+=`<a class="panel qcard" href="#q-${esc(q.id)}"><div style="min-width:0"><div style="font-weight:600;overflow-wrap:anywhere">${esc(q.client||"Untitled client")}</div>
+    <div class="muted" style="font-size:13px">${esc(q.site||"")}${q.site?" · ":""}${esc(q.date||"")} · ${(q.lines||[]).reduce((s,l)=>s+n0(l.qty),0)} items</div></div>
+    <div class="num" style="text-align:right;white-space:nowrap">${money(c.price,0)}<div class="muted" style="font-size:12px">${money(c.yrRev/12||0,0)}/mo</div></div></a>`;});
+  return h+`</div>`;
+}
+
+function stockPill(it){ return `<span class="pill s-${esc(it.stock||"na")}">${esc(STOCK[it.stock]||STOCK.na)}</span>`; }
+
+function viewQuote(){
+  const q=quotes.find(x=>x.id===route.id);
+  if(!q) return loaded.quotes?`<div class="empty">This quote was deleted or isn’t available. <a href="#quotes">Back to quotes</a></div>`:`<div class="empty">Loading quote…</div>`;
+  const ro=readOnly?"disabled":"";
+  const rooms=q.rooms&&q.rooms.length?q.rooms:["Core"];
+  let h=`<div class="stack">
+  <a href="#quotes" class="ghost btn" style="align-self:flex-start">← All quotes</a>
+  <div class="panel stack">
+    <div class="grid2">
+      <label class="f">Client<input id="q-client" value="${esc(q.client)}" placeholder="Client name" ${ro}></label>
+      <label class="f">Property / area<input id="q-site" value="${esc(q.site)}" placeholder="e.g. Las Catalinas" ${ro}></label>
+    </div>
+    <label class="f" style="max-width:220px">Survey date<input id="q-date" type="date" value="${esc(q.date)}" ${ro}></label>
+  </div>`;
+  rooms.forEach((room,ri)=>{
+    const lines=(q.lines||[]).filter(l=>l.room===room);
+    const sub=lines.reduce((s,l)=>s+n0(l.qty)*n0(l.price),0);
+    h+=`<section class="room"><div class="room-h"><h3>${esc(room)}</h3><div class="row"><span class="num">${money(sub)}</span>
+    ${ro?"":`<button class="primary" data-act="add-item" data-room="${esc(room)}" id="add-${ri}">Add</button>`}</div></div>`;
+    if(!lines.length) h+=`<div class="line"><div class="muted">Nothing in this room yet.</div>${ro||room==="Core"?"":`<button class="ghost" data-act="del-room" data-room="${esc(room)}" id="delroom-${ri}">Remove room</button>`}</div>`;
+    lines.forEach(l=>{
+      const it=catalog.find(c=>c.id===l.itemId);
+      const priceMissing=!(n0(l.price)>0);
+      h+=`<div class="line"><div style="min-width:0"><div class="nm">${esc(l.name)}</div>
+      <div class="meta"><span class="num">${money(l.price)}</span> each${it?" · "+stockPill(it):""}</div>
+      ${priceMissing?`<div class="warnline">No price set. Set it in the catalog.</div>`:""}</div>
+      <div style="text-align:right"><div class="qty">${ro?"":`<button aria-label="Remove one" data-act="dec" data-lid="${esc(l.lid)}" id="dec-${esc(l.lid)}">−</button>`}<span class="n num">${n0(l.qty)}</span>${ro?"":`<button aria-label="Add one" data-act="inc" data-lid="${esc(l.lid)}" id="inc-${esc(l.lid)}">+</button>`}</div>
+      <div class="num" style="font-size:13px;margin-top:4px">${money(n0(l.qty)*n0(l.price))}</div></div></div>`;
+    });
+    h+=`</section>`;
+  });
+  if(!ro) h+=`<div class="row"><input id="new-room" placeholder="Add a room, e.g. Master bedroom" style="flex:1;min-width:0"><button data-act="add-room" id="btn-add-room">Add room</button></div>`;
+  h+=`<details class="panel" id="settings"><summary>Pricing &amp; service <span class="chev" aria-hidden="true">▾</span></summary>
+  <div class="grid3" style="margin-top:12px">
+    <label class="f">Hardware markup %<input class="num" id="q-markup" inputmode="decimal" value="${esc(q.markup)}" ${ro}></label>
+    <label class="f">Install hours<input class="num" id="q-laborHours" inputmode="decimal" value="${esc(q.laborHours)}" ${ro}></label>
+    <label class="f">Labor rate $/hr<input class="num" id="q-laborRate" inputmode="decimal" value="${esc(q.laborRate)}" ${ro}></label>
+    <label class="f">Import / freight %<input class="num" id="q-importPct" inputmode="decimal" value="${esc(q.importPct)}" ${ro}></label>
+    <label class="f">Monthly service fee $<input class="num" id="q-serviceFee" inputmode="decimal" value="${esc(q.serviceFee)}" ${ro}></label>
+    <label class="f">WhatsApp msgs / month<input class="num" id="q-msgs" inputmode="numeric" value="${esc(q.msgs)}" ${ro}></label>
+    <label class="f">House-initiated alerts / month<input class="num" id="q-tpls" inputmode="numeric" value="${esc(q.tpls)}" ${ro}></label>
+  </div></details>
+  <div class="row">
+    <button data-act="copy" id="btn-copy">Copy summary</button>
+    <button data-act="csv" id="btn-csv">Download CSV</button>
+    ${ro?"":`<button class="danger" data-act="ask-del" id="btn-del">Delete quote</button>`}
+  </div>
+  <div id="del-confirm"></div>
+  </div>`;
+  return h;
+}
+
+function renderTotals(){
+  const host=$("#totals-host");
+  if(route.view!=="quote"){host.innerHTML="";return;}
+  const q=quotes.find(x=>x.id===route.id); if(!q){host.innerHTML="";return;}
+  const c=calc(q), open=host.dataset.open==="1";
+  host.innerHTML=`<div class="totals"><div class="in">
+  <div class="tbar"><div><div class="eyebrow">Price to client</div><div class="big">${money(c.price)}</div></div>
+  <div style="text-align:right"><div class="eyebrow">Service</div><div class="num">${money(n0(q.serviceFee))}/mo</div></div>
+  <button class="ghost" data-act="toggle-totals" id="btn-tot" aria-expanded="${open}">${open?"Hide":"Details"}</button></div>
+  ${c.noPrice?`<div class="warnline">${c.noPrice} line${c.noPrice>1?"s have":" has"} no price yet</div>`:""}
+  ${open?`<div class="brk">
+    <span class="eyebrow sec">One-time</span>
+    <span>Hardware</span><span class="num">${money(c.hw)}</span>
+    <span>Import / freight</span><span class="num">${money(c.imp)}</span>
+    <span>Markup</span><span class="num">${money(c.mk)}</span>
+    <span>Install labor</span><span class="num">${money(c.labor)}</span>
+    <span class="tot">Your margin</span><span class="num tot">${money(c.margin)}</span>
+    <span class="eyebrow sec">Per year</span>
+    <span>Home Assistant Cloud</span><span class="num">${money(c.yrHa)}</span>
+    <span>Claude API (placeholder)</span><span class="num">${money(c.yrCl)}</span>
+    <span>Twilio messages</span><span class="num">${money(c.yrTw)}</span>
+    <span>Meta alert fees</span><span class="num">${money(c.yrMt)}</span>
+    <span>Service revenue</span><span class="num">${money(c.yrRev)}</span>
+    <span class="tot">Recurring margin</span><span class="num tot">${money(c.yrMargin)}</span>
+  </div>`:""}
+  </div></div>`;
+}
+
+function viewCatalog(){
+  let h=`<div class="stack"><div class="row" style="justify-content:space-between"><h1>Parts catalog</h1>
+  ${readOnly?"":`<button class="primary" data-act="new-item" id="btn-new-item">Add part</button>`}</div>
+  <p class="muted" style="margin:0">Prices are USD before tax and shipping. Stock was checked on the date shown; check again before you order.</p>`;
+  if(!loaded.catalog) return h+`<div class="empty">Loading catalog…</div></div>`;
+  if(!catalog.length) return h+`<div class="panel empty">The catalog is empty. Tap <b>Add part</b> to add your first item.</div></div>`;
+  CATS.forEach(cat=>{
+    const items=catalog.filter(i=>(i.cat||"Other")===cat).sort((a,b)=>(a.sort||0)-(b.sort||0)||String(a.name).localeCompare(b.name));
+    if(!items.length) return;
+    h+=`<h2 class="cat-h">${esc(cat)}</h2><div class="panel" style="padding:0">`;
+    items.forEach(it=>{
+      h+=`<div class="citem"><div style="min-width:0"><div style="font-weight:600;overflow-wrap:anywhere">${esc(it.name)}</div>
+      <div class="muted" style="font-size:13px;overflow-wrap:anywhere">${esc(it.spec||"")}</div>
+      <div class="row" style="margin-top:4px">${stockPill(it)}<span class="muted" style="font-size:12px">${esc(it.vendor||"")}${it.checked?" · checked "+esc(it.checked):""}</span>
+      ${it.url?`<a class="ext" href="${esc(it.url)}" target="_blank" rel="noopener">Buy page</a>`:""}</div>
+      ${it.note?`<div class="muted" style="font-size:12px;margin-top:4px">${esc(it.note)}</div>`:""}</div>
+      <div style="text-align:right"><div class="num">${n0(it.price)>0?money(it.price):"No price"}</div>
+      ${readOnly?"":`<button class="ghost" data-act="edit-item" data-id="${esc(it.id)}" id="edit-${esc(it.id)}">Edit</button>`}</div></div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`<h2 class="cat-h">Recurring rates</h2><div class="panel grid2">
+    <label class="f">Home Assistant Cloud $/yr<input class="num" id="r-haCloudYr" inputmode="decimal" value="${esc(rates.haCloudYr)}" ${readOnly?"disabled":""}></label>
+    <label class="f">Claude API $/mo (placeholder)<input class="num" id="r-claudeMo" inputmode="decimal" value="${esc(rates.claudeMo)}" ${readOnly?"disabled":""}></label>
+    <label class="f">Twilio $/message<input class="num" id="r-twilioPerMsg" inputmode="decimal" value="${esc(rates.twilioPerMsg)}" ${readOnly?"disabled":""}></label>
+    <label class="f">Meta alert $/message (CR)<input class="num" id="r-metaTpl" inputmode="decimal" value="${esc(rates.metaTpl)}" ${readOnly?"disabled":""}></label>
+  </div>
+  <h2 class="cat-h">Backup</h2><div class="panel stack">
+    <p class="muted" style="margin:0">Everything is saved on this device only. Download a backup now and then, and restore it on another phone or tablet to move your quotes and catalog there.</p>
+    <div class="row"><button data-act="backup" id="btn-backup">Download backup</button>
+    <label class="btn" for="restore-file">Restore from backup</label><input type="file" id="restore-file" accept="application/json,.json" hidden></div>
+  </div></div>`;
+  return h;
+}
+
+/* ---------- sheets ---------- */
+function closeSheet(){ sheetOpen=null; pickerState=null; $("#sheet-host").innerHTML=""; }
+function openPicker(room){ pickerState={room,cat:"All",q:""}; sheetOpen="picker"; renderPicker(); setTimeout(()=>{const s=$("#pick-search"); if(s) s.focus();},30); }
+function renderPicker(){
+  const st=pickerState; if(!st) return;
+  const term=st.q.trim().toLowerCase();
+  const items=catalog.filter(i=>(st.cat==="All"||i.cat===st.cat)&&(!term||(i.name+" "+(i.spec||"")+" "+(i.vendor||"")).toLowerCase().includes(term)))
+    .sort((a,b)=>CATS.indexOf(a.cat)-CATS.indexOf(b.cat)||(a.sort||0)-(b.sort||0));
+  const cats=["All",...CATS.filter(c=>catalog.some(i=>i.cat===c))];
+  const listHtml=items.length?items.map(i=>`<button class="pick" data-act="pick" data-id="${esc(i.id)}"><span style="min-width:0"><span class="nm">${esc(i.name)}</span><br><span class="muted" style="font-size:12px">${esc(i.spec||"")}</span></span><span style="text-align:right"><span class="num">${n0(i.price)>0?money(i.price):"No price"}</span><br>${stockPill(i)}</span></button>`).join(""):`<div class="empty">No parts match. Add it in the catalog first.</div>`;
+  const existing=$("#pick-list");
+  if(existing){ existing.innerHTML=listHtml; document.querySelectorAll(".chips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.cat===st.cat)); return; }
+  $("#sheet-host").innerHTML=`<div class="sheet-bg" data-act="close-sheet"></div><div class="sheet" role="dialog" aria-label="Add part">
+  <div class="sh"><div class="row" style="justify-content:space-between"><h2>Add to ${esc(st.room)}</h2><button class="ghost" data-act="close-sheet">Done</button></div>
+  <input id="pick-search" placeholder="Search parts" value="${esc(st.q)}">
+  <div class="chips">${cats.map(c=>`<button data-act="pick-cat" data-cat="${esc(c)}" aria-pressed="${c===st.cat}">${esc(c)}</button>`).join("")}</div></div>
+  <div class="sb" id="pick-list">${listHtml}</div></div>`;
+}
+function openItemEditor(id){
+  const it=id?catalog.find(c=>c.id===id):{cat:"Lighting & relays",stock:"unverified",checked:new Date().toISOString().slice(0,10)};
+  if(!it) return; sheetOpen="item";
+  $("#sheet-host").innerHTML=`<div class="sheet-bg" data-act="close-sheet"></div><div class="sheet" role="dialog" aria-label="Edit part">
+  <div class="sh"><div class="row" style="justify-content:space-between"><h2>${id?"Edit part":"New part"}</h2><button class="ghost" data-act="close-sheet">Cancel</button></div></div>
+  <form class="sb stack" id="item-form" data-id="${esc(id||"")}">
+    <label class="f">Name<input id="i-name" required value="${esc(it.name)}"></label>
+    <label class="f">Spec / model<input id="i-spec" value="${esc(it.spec)}"></label>
+    <div class="grid2">
+      <label class="f">Category<select id="i-cat">${CATS.map(c=>`<option ${c===it.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></label>
+      <label class="f">Unit cost $<input class="num" id="i-price" inputmode="decimal" value="${esc(it.price)}"></label>
+      <label class="f">Vendor<input id="i-vendor" value="${esc(it.vendor)}"></label>
+      <label class="f">Stock<select id="i-stock">${Object.keys(STOCK).map(k=>`<option value="${k}" ${k===it.stock?"selected":""}>${STOCK[k]}</option>`).join("")}</select></label>
+      <label class="f">Stock checked<input type="date" id="i-checked" value="${esc(it.checked)}"></label>
+      <label class="f" style="flex-direction:row;align-items:center;gap:8px;margin-top:18px"><input type="checkbox" id="i-kit" style="width:auto;min-height:0" ${it.kit?"checked":""}>In core kit</label>
+    </div>
+    <label class="f">Buy page link<input id="i-url" type="url" value="${esc(it.url)}" placeholder="https://"></label>
+    <label class="f">Notes<input id="i-note" value="${esc(it.note)}"></label>
+    <div class="row"><button class="primary" type="submit" id="i-save">Save part</button>${id?`<button type="button" class="danger" data-act="del-item" data-id="${esc(id)}" id="i-del">Delete part</button>`:""}</div>
+    <div id="item-del-confirm"></div>
+  </form></div>`;
+}
+
+/* ---------- actions ---------- */
+function curQuote(){ return quotes.find(x=>x.id===route.id); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function toast(msg){ const h=$("#toast-host"); h.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>h.innerHTML="",2400); }
+
+function newQuote(){
+  const q={id:uid(),client:"",site:"",date:new Date().toISOString().slice(0,10),created:Date.now(),rooms:["Core"],lines:[],
+    markup:0,laborHours:0,laborRate:0,importPct:0,serviceFee:0,msgs:300,tpls:30};
+  catalog.filter(i=>i.kit).sort((a,b)=>(a.sort||0)-(b.sort||0)).forEach(i=>q.lines.push({lid:uid(),itemId:i.id,name:i.name,price:n0(i.price),room:"Core",qty:1}));
+  quotes.push(q); saveQuote(q); location.hash="q-"+q.id;
+}
+function addLine(itemId, room){
+  const q=curQuote(), it=catalog.find(c=>c.id===itemId); if(!q||!it) return;
+  const ex=q.lines.find(l=>l.itemId===itemId&&l.room===room);
+  if(ex) ex.qty=n0(ex.qty)+1; else q.lines.push({lid:uid(),itemId,name:it.name,price:n0(it.price),room,qty:1});
+  saveQuote(q); render(); toast("Added "+it.name);
+}
+function quoteText(q){
+  const c=calc(q); let t=`CasaControl quote — ${q.client||"Client"}${q.site?" ("+q.site+")":""}, ${q.date||""}\n`;
+  (q.rooms||[]).forEach(r=>{const ls=q.lines.filter(l=>l.room===r); if(!ls.length) return; t+=`\n${r}\n`; ls.forEach(l=>t+=`  ${l.qty} × ${l.name} — ${money(n0(l.qty)*n0(l.price))}\n`);});
+  t+=`\nHardware ${money(c.hw)} · Import ${money(c.imp)} · Markup ${money(c.mk)} · Labor ${money(c.labor)}\nPrice to client: ${money(c.price)}\nMonthly service: ${money(n0(q.serviceFee))}\n`;
+  return t;
+}
+function quoteCsv(q){
+  const c=calc(q), cell=v=>`"${String(v).replace(/"/g,'""')}"`;
+  const rows=[["Room","Item","Qty","Unit cost","Line total"]];
+  q.lines.forEach(l=>rows.push([l.room,l.name,n0(l.qty),n0(l.price).toFixed(2),(n0(l.qty)*n0(l.price)).toFixed(2)]));
+  rows.push([],["Hardware","","","",c.hw.toFixed(2)],["Import / freight","","","",c.imp.toFixed(2)],["Markup","","","",c.mk.toFixed(2)],["Install labor","","","",c.labor.toFixed(2)],["Price to client","","","",c.price.toFixed(2)],["Your margin","","","",c.margin.toFixed(2)],[],
+    ["Annual running cost","","","",c.yrCost.toFixed(2)],["Annual service revenue","","","",c.yrRev.toFixed(2)],["Annual recurring margin","","","",c.yrMargin.toFixed(2)]);
+  return rows.map(r=>r.map(cell).join(",")).join("\n");
+}
+
+document.addEventListener("click", async e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const act=b.dataset.act, q=curQuote();
+  if(act==="new-quote") newQuote();
+  else if(act==="add-item") openPicker(b.dataset.room);
+  else if(act==="close-sheet") closeSheet();
+  else if(act==="pick-cat"){ pickerState.cat=b.dataset.cat; renderPicker(); }
+  else if(act==="pick") addLine(b.dataset.id, pickerState.room);
+  else if((act==="inc"||act==="dec")&&q){ const l=q.lines.find(x=>x.lid===b.dataset.lid); if(!l) return;
+    l.qty=n0(l.qty)+(act==="inc"?1:-1); if(l.qty<=0) q.lines=q.lines.filter(x=>x!==l); saveQuote(q,400); render(); }
+  else if(act==="add-room"&&q){ const v=$("#new-room").value.trim(); if(!v) return; if(q.rooms.includes(v)){toast("That room is already on this quote.");return;}
+    q.rooms.push(v); saveQuote(q); render(); }
+  else if(act==="del-room"&&q){ q.rooms=q.rooms.filter(r=>r!==b.dataset.room); saveQuote(q); render(); }
+  else if(act==="toggle-totals"){ const h=$("#totals-host"); h.dataset.open=h.dataset.open==="1"?"0":"1"; renderTotals(); }
+  else if(act==="copy"&&q){ const t=quoteText(q); try{ await navigator.clipboard.writeText(t); toast("Summary copied"); }catch(_){ $("#del-confirm").innerHTML=`<textarea style="width:100%;min-height:200px;font:inherit" readonly id="copy-fallback">${esc(t)}</textarea>`; const ta=$("#copy-fallback"); ta.select(); toast("Select all and copy"); } }
+  else if(act==="csv"&&q){ let dl=null; try{ dl=await useCap("downloads"); }catch(_){} if(!dl){toast("Downloads aren’t available here. Use Copy summary instead.");return;}
+    try{ await dl.save({filename:`CasaControl-${(q.client||"quote").replace(/[^\w-]+/g,"_")}-${q.date||""}.csv`,data:quoteCsv(q)}); toast("CSV saved"); }
+    catch(err){ if(err&&err.code!=="declined") toast("Couldn’t save the CSV. Use Copy summary instead."); } }
+  else if(act==="ask-del"){ $("#del-confirm").innerHTML=`<div class="notice row" style="justify-content:space-between"><span>Delete this quote for good?</span><span class="row"><button data-act="cancel-del" id="btn-cancel-del">Keep it</button><button class="danger" data-act="do-del" id="btn-do-del">Delete</button></span></div>`; }
+  else if(act==="cancel-del") $("#del-confirm").innerHTML="";
+  else if(act==="do-del"&&q){ const id=q.id; quotes=quotes.filter(x=>x.id!==id); queueWrite("quotes/"+id,()=>db.doc("quotes/"+id).delete()); location.hash="quotes"; toast("Quote deleted"); }
+  else if(act==="backup"){ localDownloads.save({filename:"casacontrol-backup-"+new Date().toISOString().slice(0,10)+".json",data:JSON.stringify(store)}); toast("Backup downloaded"); }
+  else if(act==="new-item") openItemEditor(null);
+  else if(act==="edit-item") openItemEditor(b.dataset.id);
+  else if(act==="del-item"){ $("#item-del-confirm").innerHTML=`<div class="notice row" style="justify-content:space-between"><span>Delete this part? Existing quotes keep their lines.</span><button type="button" class="danger" data-act="do-del-item" data-id="${esc(b.dataset.id)}" id="btn-do-del-item">Delete</button></div>`; }
+  else if(act==="do-del-item"){ const id=b.dataset.id; catalog=catalog.filter(c=>c.id!==id); queueWrite("catalog/"+id,()=>db.doc("catalog/"+id).delete()); closeSheet(); render(); toast("Part deleted"); }
+});
+
+document.addEventListener("input", e=>{
+  const t=e.target, q=curQuote();
+  if(t.id==="pick-search"&&pickerState){ pickerState.q=t.value; renderPicker(); return; }
+  if(t.id&&t.id.startsWith("q-")&&q){ const k=t.id.slice(2); q[k]=t.value; saveQuote(q,700); renderTotals(); return; }
+  if(t.id&&t.id.startsWith("r-")){ const k=t.id.slice(2); rates[k]=n0(t.value); clearTimeout(timers.rates);
+    timers.rates=setTimeout(()=>queueWrite("config/rates",()=>db.doc("config/rates").set({...rates})),700); }
+});
+
+document.addEventListener("change", e=>{
+  if(e.target.id!=="restore-file"||!e.target.files[0]) return;
+  const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d||!d.catalog) throw 0; store=d; persist(); toast("Backup restored"); }catch(_){ toast("That file isn’t a CasaControl backup."); } }; r.readAsText(e.target.files[0]);
+});
+document.addEventListener("submit", e=>{
+  if(e.target.id!=="item-form") return; e.preventDefault();
+  const id=e.target.dataset.id||("p-"+uid());
+  const prev=catalog.find(c=>c.id===id)||{};
+  const it={...prev,id,name:$("#i-name").value.trim(),spec:$("#i-spec").value.trim(),cat:$("#i-cat").value,price:n0($("#i-price").value),
+    vendor:$("#i-vendor").value.trim(),stock:$("#i-stock").value,checked:$("#i-checked").value,kit:$("#i-kit").checked,url:$("#i-url").value.trim(),note:$("#i-note").value.trim(),sort:prev.sort||999};
+  if(!it.name){toast("Give the part a name.");return;}
+  const i=catalog.findIndex(c=>c.id===id); if(i>=0) catalog[i]=it; else catalog.push(it);
+  const body={...it}; delete body.id;
+  queueWrite("catalog/"+id,()=>db.doc("catalog/"+id).set(body));
+  closeSheet(); render(); toast("Part saved");
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"&&sheetOpen) closeSheet(); if(e.key==="Enter"&&e.target.id==="new-room"){ e.preventDefault(); $("#btn-add-room").click(); } });
+
+/* ---------- boot ---------- */
+readRoute();
+(async function boot(){
+  try{ db=await useCap("db"); }catch(_){ db=null; }
+  if(!db){ render(); return; }
+  try{ const user=await useCap("user"); if(user){ const w=await user.can("data.write"); if(w===false) readOnly=true; } }catch(_){}
+  render();
+  const timer=setTimeout(()=>{},0);
+  const done=()=>{ if(loaded.catalog&&loaded.quotes){clearTimeout(timer);offline=false;} };
+  db.collection("catalog").onSnapshot(s=>{
+    catalog=s.docs.map(d=>({id:d.id,...d.data()})); if(!s.metadata.fromCache) loaded.catalog=true; else loaded.catalog=loaded.catalog||s.size>0;
+    done(); if(sheetOpen!=="item") { if(sheetOpen==="picker") renderPicker(); render(); }
+  },()=>{loaded.catalog=true;offline=true;render();});
+  db.collection("quotes").onSnapshot(s=>{
+    const fresh=s.docs.map(d=>({id:d.id,...JSON.parse(JSON.stringify(d.data()))}));
+    quotes=fresh.map(f=>{ const local=quotes.find(x=>x.id===f.id); return (local&&(local.updated||0)>(f.updated||0))?local:f; });
+    if(!s.metadata.fromCache) loaded.quotes=true; else loaded.quotes=loaded.quotes||s.size>0;
+    done(); render();
+  },()=>{loaded.quotes=true;offline=true;render();});
+  db.doc("config/rates").onSnapshot(s=>{ if(s.exists) rates={...rates,...s.data()}; if(route.view!=="catalog"||!document.activeElement||!String(document.activeElement.id).startsWith("r-")) render(); },()=>{});
+})();
+})();
+</script>
+
+</body></html>
